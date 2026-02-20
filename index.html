@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Name Generator - Vibe Edition</title>
+    <style>
+        :root {
+            --primary: #3a7bd5; /* CPP Blue */
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg); color: var(--text);
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; transition: background 0.5s ease;
+        }
+        .container {
+            background: var(--card); padding: 2.5rem; border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); text-align: center;
+            border: 1px solid #333; width: 480px; transition: all 0.5s ease;
+        }
+        .legendary-glow {
+            border-color: var(--primary) !important;
+            box-shadow: 0 0 40px rgba(58, 123, 213, 0.4);
+            transform: scale(1.01);
+        }
+        h1 { font-weight: 300; color: var(--primary); margin: 0; letter-spacing: 2px; font-size: 1.5rem; }
+        p.subtitle { color: #555; font-size: 0.7rem; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;}
+        #output {
+            font-size: 1.6rem; min-height: 90px; display: flex; align-items: center; justify-content: center;
+            margin: 20px 0; padding: 15px; background: #252525; border-radius: 8px;
+            border-left: 4px solid var(--primary); cursor: pointer; transition: 0.2s;
+            line-height: 1.2;
+        }
+        #output:hover { background: #2d2d2d; }
+        button.main-btn {
+            width: 100%; background: var(--primary); border: none; padding: 18px;
+            font-size: 1.2rem; color: white; border-radius: 8px;
+            cursor: pointer; font-weight: bold; margin-bottom: 15px;
+        }
+        button.main-btn:active { transform: scale(0.98); }
+        #advancedToggle {
+            color: #666; font-size: 0.8rem; cursor: pointer; text-decoration: underline;
+            background: none; border: none; margin-bottom: 10px;
+        }
+        #advancedPanel { display: none; background: #181818; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px dashed #444; }
+        .selectors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        select { padding: 10px; background: #2b2b2b; color: white; border-radius: 6px; border: 1px solid #444; cursor: pointer; }
+        .toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; font-size: 0.8rem; color: #888; }
+        input[type="checkbox"] { accent-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container" id="mainContainer">
+    <h1>Name Generator - Vibe Edition</h1>
+    <p class="subtitle">Generate a Track Name</p>
+
+    <div id="output" onclick="copyToClipboard()">Click Generate</div>
+    <button class="main-btn" onclick="generateName()">Generate Track Name</button>
+    <button id="advancedToggle" onclick="toggleAdvanced()">Advanced Planning Office ▾</button>
+
+    <div id="advancedPanel">
+        <div class="selectors">
+            <select id="seriesSelect">
+                <option value="random">Random Series</option>
+                <option value="global">Global Lore (CS1/CS2)</option>
+                <option value="saguna">Saguna Beach</option>
+                <option value="magnolia">Magnolia County</option>
+            </select>
+            <select id="styleSelect">
+                <option value="random">Random Mood</option>
+                <option value="chill">Mood: Chill</option>
+                <option value="busy">Mood: Busy</option>
+                <option value="industrial">Mood: Industrial</option>
+            </select>
+        </div>
+        <div class="toggles">
+            <label><input type="checkbox" id="policy" checked> Urban Policy</label>
+            <label><input type="checkbox" id="infrastructure" checked> Infrastructure</label>
+            <label><input type="checkbox" id="song" checked> Romantic/Lo-Fi</label>
+            <label><input type="checkbox" id="community" checked> Inside Jokes</label>
+        </div>
+    </div>
+</div>
+
+<script>
+const plannerData = {
+    global: {
+        roots: ["Riverbend", "Ironwood", "Northgate", "Stonebridge", "Clearwater County", "Verde Beach", "Bluffside Crossing", "Mountain Tapers", "Verde Valley"],
+        planning: ["The Works", "Nuance Study", "Future-Proofing", "Lane Mathematics", "Zoning Variance", "Master Plan"]
+    },
+    saguna: {
+        roots: ["Market Street", "The Presidio", "Twin Peaks", "Fisherman’s Wharf", "Grizzly Peak", "Lombard Street", "The Embarcadero", "Sutro Tower", "Steiner Street", "Fog City"],
+        planning: ["Waterfront Initiative", "Coastal Access", "Transit Village", "Hillside Ordinance", "Cable Car Extension"]
+    },
+    magnolia: {
+        roots: ["Magnolia Street", "Bailey", "Segunda Beach", "Lake Segunda", "Regional Airport", "Bluffside Crossing", "Lafayette Street", "The Asylum", "Business Park", "River Delta", "Pine Barrens", "Sugar Creek"],
+        planning: ["Comprehensive Plan", "Corridor Study", "Downtown Revitalization", "County Annex", "I-40 Interchange Study"]
+    },
+    community: [
+        "Mulligan", "Beneath the Road", "Myrtle", "Perfect < Good", "Lumpy n' Bumpy", "The Stroad", "Desire Paths", "Level of Service", "Induced Demand", "Traffic Calming", "The Slip Lane", "Moving Some Dirt", "Technical Difficulties", "Ploppable Rico"
+    ]
+};
+
+const legendaryWords = ["The Works", "Mulligan", "Perfect < Good", "Myrtle", "Clearwater", "Verde Beach"];
+
+function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function toggleAdvanced() {
+    const panel = document.getElementById("advancedPanel");
+    const btn = document.getElementById("advancedToggle");
+    const isOpen = panel.style.display === "block";
+    panel.style.display = isOpen ? "none" : "block";
+    btn.innerText = isOpen ? "Advanced Planning Office ▾" : "Close Planning Office ▴";
+}
+
+function generateName() {
+    const container = document.getElementById("mainContainer");
+
+    // Pick series and style
+    let seriesKey = document.getElementById("seriesSelect").value;
+    if (seriesKey === "random") seriesKey = randomItem(["global", "saguna", "magnolia"]);
+    const series = plannerData[seriesKey];
+
+    let style = document.getElementById("styleSelect").value;
+    if (style === "random") style = randomItem(["chill", "busy", "industrial"]);
+
+    const settings = {
+        policy: document.getElementById("policy").checked,
+        infra: document.getElementById("infrastructure").checked,
+        song: document.getElementById("song").checked,
+        comm: document.getElementById("community").checked
+    };
+
+    let templates = [];
+    const root = randomItem(series.roots);
+    const plan = randomItem(series.planning);
+    const joke = randomItem(plannerData.community);
+
+    // Filter Logic
+    if (style === "chill") {
+        if (settings.song) templates.push(`Midnight in ${root}`, `Rain Over ${root}`, `Echoes of ${root}`, `${root} Ambient`);
+        if (settings.policy) templates.push(`${root} Preservation Act`, `Soft Zoning in ${root}`);
+        if (settings.comm) templates.push(`A Slow ${joke}`, `The ${joke} Sessions`);
+    }
+    else if (style === "busy") {
+        if (settings.infra) templates.push(`${root} Commuter Rail`, `Rush Hour at ${root}`, `The ${root} Bypass`);
+        if (settings.policy) templates.push(`Growth Strategy: ${root}`, `${root} Density Audit`);
+        if (settings.comm) templates.push(`${joke} (High Flow Mix)`);
+    }
+    else { // Industrial
+        if (settings.infra) templates.push(`${root} Freight Terminal`, `Powering ${root}`, `${root} Logistics Hub`);
+        if (settings.policy) templates.push(`${root} Heavy Industry Zone`, `Brownfield Study: ${root}`);
+        if (settings.comm) templates.push(`${joke} Steel & Iron`, `Beneath the ${root} Foundations`);
+    }
+
+    // Secondary Variety Mix
+    if (settings.policy) templates.push(`${root} ${plan}`, `${plan}: ${root}`, `The ${root} ${plan}`);
+    if (settings.infra) templates.push(`${root} Infrastructure Upgrade`, `${root} Transit Corridor`);
+    if (settings.song) templates.push(`Under the ${root}`, `Beyond the ${root}`);
+    if (settings.comm) templates.push(`${joke} at ${root}`, `The ${joke} Protocol`);
+
+    // Pick result
+    let result = templates.length > 0 ? randomItem(templates) : "Enable options in Advanced!";
+
+    // --- DEDUPLICATOR ---
+    // Remove repeated words (case insensitive), handles "The The" or "Street Street"
+    result = result.replace(/\b(\w+)\s+\1\b/gi, "$1");
+
+    document.getElementById("output").innerText = result;
+
+    // --- EASTER EGG ---
+    const isLegendary = legendaryWords.some(word => result.includes(word));
+    if (isLegendary) {
+        container.classList.add("legendary-glow");
+    } else {
+        container.classList.remove("legendary-glow");
+    }
+}
+
+function copyToClipboard() {
+    const text = document.getElementById("output").innerText;
+    if(text === "Click Generate") return;
+    navigator.clipboard.writeText(text);
+    const originalText = text;
+    document.getElementById("output").innerText = "COPIED!";
+    setTimeout(() => { document.getElementById("output").innerText = originalText; }, 800);
+}
+</script>
+
+</body>
+</html>
